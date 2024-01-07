@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import Http404
 
 from . import util
@@ -20,3 +20,19 @@ def entry_detail(request, title):
         "title": title,
         "content": entry_content
     })
+
+
+def search_entries(request):
+    query = request.GET.get('q', '').lower()
+    entries = util.list_entries()
+    matching_entries = [entry for entry in entries if query in entry.lower()]
+
+    if len(matching_entries) == 1:
+        return redirect('entry_detail', title=matching_entries[0])
+    elif matching_entries:
+        return render(request, "encyclopedia/search_results.html", {
+            "query": query,
+            "entries": matching_entries
+        })
+    else:
+        raise Http404("No Matching Entries Found")
